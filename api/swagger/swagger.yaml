@@ -1,0 +1,226 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: Geolocation search
+host: dockerhost:1337
+basePath: /v1
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /properties:
+    x-swagger-router-controller: properties
+    post:
+      description: Register a new property
+      operationId: addProperty
+      parameters:
+        - in: body
+          name: body
+          description: Property to register
+          required: true
+          schema:
+            $ref: "#/definitions/PropertyBase"
+      responses:
+        201:
+          description: Success
+          schema:
+            $ref: "#/definitions/Property"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    get:
+      description: Search properties inside the square
+      operationId: searchProperties
+      parameters:
+        - name: ax
+          in: query
+          description: Upper left point lat
+          required: true
+          type: integer
+          minimum: 0
+          maximum: 1400
+        - name: ay
+          in: query
+          description: Upper left point long
+          required: true
+          type: integer
+          minimum: 0
+          maximum: 1000
+        - name: bx
+          in: query
+          description: Bottom right point lat
+          required: true
+          type: integer
+          minimum: 0
+          maximum: 1400
+        - name: by
+          in: query
+          description: Bottom right point long
+          required: true
+          type: integer
+          minimum: 0
+          maximum: 1000
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            description: List of all properties found
+            required:
+            - foundProperties
+            properties:
+              foundProperties:
+                type: integer
+              properties:
+                type: array
+                items:
+                  $ref: "#/definitions/Property"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /properties/{id}:
+    x-swagger-router-controller: properties
+    get:
+      description: Get a property by ID
+      operationId: getProperty
+      parameters:
+        - name: id
+          in: path
+          description: UUID of property
+          type: string
+          required: true
+          minLength: 36
+          maxLength: 36
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/Property"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# TODO: change property and propertyBase using allOf
+definitions:
+  PropertyBase:
+    required:
+      - x
+      - y
+      - title
+      - price
+      - description
+      - beds
+      - baths
+      - squareMeters
+    properties:
+      x:
+        type: integer
+        description: lat
+        minimum: 0
+        maximum: 1400
+      y:
+        type: integer
+        description: long
+        minimum: 0
+        maximum: 1000
+      title:
+        type: string
+        minLength: 5
+        maxLength: 255
+      price:
+        type: number
+        minimum: 1
+      description:
+        type: string
+        minLength: 5
+        maxLength: 255
+      beds:
+        type: integer
+        description: number of beds of the property
+        minimum: 1
+        maximum: 5
+      baths:
+        type: integer
+        description: number of baths of the property
+        minimum: 1
+        maximum: 4
+      squareMeters:
+        type: integer
+        description: size of the property
+        minimum: 20
+        maximum: 240
+  Property:
+    required:
+      - id
+      - x
+      - y
+      - title
+      - price
+      - description
+      - beds
+      - baths
+      - squareMeters
+      - provinces
+    properties:
+      id:
+        type: string
+        format: uuid
+        minLength: 36
+        maxLength: 36
+      x:
+        type: integer
+        description: lat
+        minimum: 0
+        maximum: 1400
+      y:
+        type: integer
+        description: long
+        minimum: 0
+        maximum: 1000
+      title:
+        type: string
+        minLength: 5
+        maxLength: 255
+      price:
+        type: number
+        minimum: 1
+      description:
+        type: string
+        minLength: 5
+        maxLength: 255
+      beds:
+        type: integer
+        description: number of beds of the property
+        minimum: 1
+        maximum: 5
+      baths:
+        type: integer
+        description: number of baths of the property
+        minimum: 1
+        maximum: 4
+      squareMeters:
+        type: integer
+        description: size of the property
+        minimum: 20
+        maximum: 240
+      provinces:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      code:
+        type: string
+      message:
+        type: string
